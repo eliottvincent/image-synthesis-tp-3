@@ -328,7 +328,15 @@ class Vertex
      */
     computeNormal()
     {
-        /// TODO calculer la moyenne des normales des triangles autour de this
+        let somme = vec3.create();
+        for (let t of this.m_Mesh.m_TriangleList) {
+            if (t.contains(this)) {
+
+                vec3.add(somme, somme, t.m_Normal);
+            }
+        }
+        // normalisation
+        vec3.normalize(this.m_Normal, somme);
     }
 }
 
@@ -369,6 +377,24 @@ class Triangle
      */
     computeNormal()
     {
-        /// TODO calculer la normale de this
+        // les trois points
+        let A = this.m_Vertices[0];
+        let B = this.m_Vertices[1];
+        let C = this.m_Vertices[2];
+
+        // les vecteurs
+        let AB = vec3.create();
+        let AC = vec3.create();
+        vec3.sub(AB, B.m_Coords, A.m_Coords);
+        vec3.sub(AC, C.m_Coords, A.m_Coords);
+
+        // produit vectoriel
+        vec3.cross(this.m_Normal, AB, AC);
+
+        // surface du triangle
+        this.m_Surface = 0.5 * vec3.length(this.m_Normal);
+
+        // normalisation
+        //vec3.normalize(this.m_Normal, this.m_Normal);
     }
 }

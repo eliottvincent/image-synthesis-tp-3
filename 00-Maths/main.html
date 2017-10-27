@@ -1,0 +1,332 @@
+<html>
+
+<head>
+    <title>00-Maths</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+
+    <!-- chargement des librairies : maths, divers et debug -->
+    <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="libs/utils.js"></script>
+
+    <style>
+        em {
+            color: red;
+        }
+    </style>
+
+    <!-- initialisation du contexte OpenGL dans le canvas -->
+    <script type="text/javascript">
+
+        function main()
+        {
+            // rechercher le <p> appelé "debug"
+            let debug = document.getElementById("debug");
+
+            ///////////////////////////
+            debug.innerHTML += "<h4>Normalisation</h4>";
+
+            debug.innerHTML += "<p>Fonctions utilisées :<ul>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.fromValues'>vec3.fromValues(x,y,z)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.str'>vec3.str(a)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.length'>vec3.length(a)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.normalize'>vec3.normalize(out, a)</a></li>";
+            debug.innerHTML += "</ul></p>";
+
+            // définir le vecteur U
+            let U = vec3.fromValues(0,2,0);
+            debug.innerHTML += "U = "+vec3.str(U)+"<br/>";
+
+            // norme de U
+            debug.innerHTML += "norme de U = "+vec3.length(U)+"<br/>";
+
+            // normaliser le vecteur U
+            vec3.normalize(U, U);
+            debug.innerHTML += "U normalisé = "+vec3.str(U)+"<br/>";
+
+            // définir le vecteur V
+            let V = vec3.fromValues(4,3,0);
+            debug.innerHTML += "V = "+vec3.str(V)+"<br/>";
+
+            // norme de V
+            debug.innerHTML += "norme de V = "+vec3.length(V)+"<br/>";
+
+            // normaliser le vecteur V
+            vec3.normalize(V, V);
+            debug.innerHTML += "V normalisé = "+vec3.str(V)+" <em>remarquez l'imprecision !</em><br/>";
+
+
+            ///////////////////////////
+            debug.innerHTML += "<h4>Produit scalaire</h4>";
+
+            debug.innerHTML += "<p>Fonctions utilisées<ul>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.dot'>vec3.dot(a, b)</a></li>";
+            debug.innerHTML += "</ul></p>";
+
+            // produit scalaire de U par V
+            let UdotV = vec3.dot(U, V);
+            debug.innerHTML += "U∙V = "+UdotV+"<br/>";
+
+            // produit scalaire de V par U
+            let VdotU = vec3.dot(V, U);
+            debug.innerHTML += "V∙U = "+VdotU+"<br/>";
+
+
+            ///////////////////////////
+            debug.innerHTML += "<h4>Projection à l'aide du produit scalaire</h4>";
+
+            debug.innerHTML += "<p>Fonctions utilisées :<ul>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.create'>vec3.create()</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.scale'>vec3.scale(out, a, b)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.subtract'>vec3.subtract(out, a, b)</a></li>";
+            debug.innerHTML += "</ul></p>";
+
+            // définir le vecteur A
+            let A = vec3.fromValues(0,2,0);
+            debug.innerHTML += "A = "+vec3.str(A)+"<br/>";
+
+            // définir le vecteur B
+            let B = vec3.fromValues(1,1,0);
+            debug.innerHTML += "B = "+vec3.str(B)+"<br/>";
+
+            // projeté de B sur A = (A1.B)×A1 avec A1=normalisation(A)
+            let A1 = vec3.create();
+            vec3.normalize(A1, A);
+            let A1dotB = vec3.dot(A1, B);
+            let BsurA = vec3.create();
+            vec3.scale(BsurA, A1, A1dotB);       // !!! PIÈGE À LOUPS : utiliser scale et non pas mul
+            debug.innerHTML += "BsurA = "+vec3.str(BsurA)+"<br/>";
+
+            // vecteur orthogonal au projeté de B sur A
+            let orthoBsurA = vec3.create();
+            vec3.subtract(orthoBsurA, B, BsurA);        // !!! c'est subtract et non pas substract
+            debug.innerHTML += "orthogonal de BsurA = "+vec3.str(orthoBsurA)+"<br/>";
+
+            // projeté de A sur B = (B.A1)×B1 avec B1=normalisation(B)
+            let B1 = vec3.create();
+            vec3.normalize(B1, B);
+            let B1dotA = vec3.dot(B1, A);
+            let AsurB = vec3.create();
+            vec3.scale(AsurB, B1, B1dotA);
+            debug.innerHTML += "AsurB = "+vec3.str(AsurB)+" <em>la projection de A sur B se fait orthogonalement à B, pas à A !</em><br/>";
+
+            // vecteur orthogonal au projeté de A sur B
+            let orthoAsurB = vec3.create();
+            vec3.subtract(orthoAsurB, A, AsurB);
+            debug.innerHTML += "orthogonal de AsurB = "+vec3.str(orthoAsurB)+"<br/>";
+
+
+            ///////////////////////////
+            debug.innerHTML += "<h4>Produit vectoriel</h4>";
+
+            debug.innerHTML += "<p>Fonctions utilisées :<ul>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec3.html#.cross'>vec3.cross(out, a, b)</a></li>";
+            debug.innerHTML += "</ul></p>";
+
+            // définir le vecteur I
+            let I = vec3.fromValues(1,0,1);
+            debug.innerHTML += "I = "+vec3.str(I)+"<br/>";
+
+            // définir le vecteur J
+            let J = vec3.fromValues(-1,0,0);
+            debug.innerHTML += "J = "+vec3.str(J)+"<br/>";
+
+            // produit vectoriel de I par J
+            let IcrossJ = vec3.create();
+            vec3.cross(IcrossJ, I, J);
+            debug.innerHTML += "I∧J = "+vec3.str(IcrossJ)+"<br/>";
+
+            // produit vectoriel de J par I
+            let JcrossI = vec3.create();
+            vec3.cross(JcrossI, J, I);
+            debug.innerHTML += "J∧I = "+vec3.str(JcrossI)+" <em>Le produit vectoriel n'est pas commutatif, il tient compte de la « main » du repère, premier vecteur = pouce, second = index</em><br/>";
+
+
+            ///////////////////////////
+            debug.innerHTML += "<h4>Matrices 2x2</h4>";
+
+            debug.innerHTML += "<p>Fonctions utilisées :<ul>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat2.html#.fromValues'>mat2.fromValues(a,b,c,d)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat2.html#.str'>mat2.str(a)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec2.html#.fromValues'>vec2.fromValues(x,y)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec2.html#.str'>vec2.str(a)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec2.html#.create'>vec2.create()</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec2.html#.transformMat2'>vec2.transformMat2(out, a, m)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat2.html#.mul'>mat2.mul(out, a, b)</a> ou <a href='http://glmatrix.net/docs/module-mat2.html#.multiply'>mat2.multiply(out, a, b)</a></li>";
+            debug.innerHTML += "</ul></p>";
+
+            // définir la matrice M : rotation
+            let angle = Utils.radians(45.0);
+            let cos_angle = Math.cos(angle);
+            let sin_angle = Math.sin(angle);
+            let M = mat2.fromValues(cos_angle, sin_angle, -sin_angle, cos_angle);
+            debug.innerHTML += "M = "+mat2.str(M)+"<br/>";
+
+            // redéfinir le vecteur U
+            U = vec2.fromValues(2,2);
+            debug.innerHTML += "U = "+vec2.str(U)+"<br/>";
+
+            // appliquer M à U
+            let MU = vec2.create();
+            vec2.transformMat2(MU, U, M);
+            debug.innerHTML += "M×U = "+vec2.str(MU)+"<br/>";
+
+            // définir la matrice N : symétrie % axe Y (inversion du signe de X)
+            let N = mat2.fromValues(-1, 0, 0, 1);
+            debug.innerHTML += "N = "+mat2.str(N)+"<br/>";
+
+            // appliquer N à U
+            let NU = vec2.create();
+            vec2.transformMat2(NU, U, N);
+            debug.innerHTML += "N×U = "+vec2.str(NU)+"<br/>";
+
+            // créer NM = produit de la matrice N par M
+            let NM = mat2.create();
+            mat2.multiply(NM, N, M); // ou mul
+            debug.innerHTML += "N×M = "+mat2.str(NM)+"<br/>";
+
+            // créer MN = produit de la matrice M par N
+            let MN = mat2.create();
+            mat2.mul(MN, M, N);
+            debug.innerHTML += "M×N = "+mat2.str(MN)+" <em>Le produit de matrices est rarement commutatif</em><br/>";
+
+            // appliquer NM à U
+            let NMU = vec2.create();
+            vec2.transformMat2(NMU, U, NM);
+            debug.innerHTML += "(N×M)×U = "+vec2.str(NMU)+"<br/>";
+
+            // appliquer M à U (déjà calculé dans MU) puis N au résultat
+            vec2.transformMat2(NMU, MU, N);
+            debug.innerHTML += "N×(M×U) = "+vec2.str(NMU)+" <em>Le produit de matrices est associatif</em><br/>";
+
+
+            ///////////////////////////
+            debug.innerHTML += "<h4>Matrices 4x4</h4>";
+
+            debug.innerHTML += "<p>Fonctions utilisées :<ul>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec4.html#.create'>vec4.create()</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-vec4.html#.fromValues'>vec4.fromValues(x,y,z,w)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat4.html#.create'>mat4.create()</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat4.html#.rotateY'>mat4.rotateY(out, a, rad)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat4.html#.translate'>mat4.translate(out, a, v)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat4.html#.scale'>mat4.scale(out, a, v)</a></li>";
+            debug.innerHTML += "</ul></p>";
+
+            // redéfinir le vecteur U
+            U = vec4.fromValues(2,0,2,0);
+            debug.innerHTML += "U = "+vec4.str(U)+"<br/>";
+
+            // définir la matrice Ry à une rotation d'axe Y
+            let Ry = mat4.create();
+            mat4.rotateY(Ry, Ry, angle);        // !!! c'est rotate et non pas rotation
+            debug.innerHTML += "Ry = "+mat4.str(Ry)+"<br/>";
+
+            // appliquer Ry à U
+            let RyU = vec4.create();
+            vec4.transformMat4(Ry, U, Ry);
+            debug.innerHTML += "Ry×U = "+vec4.str(RyU)+" <em>La rotation d'axe Y se fait dans le plan (Z, X) et non pas (X, Z)</em><br/>";
+
+            // définir la matrice T à une translation de 10 unités en Y
+            let T = mat4.create();
+            mat4.translate(T, T, vec3.fromValues(0,10,0));        // !!! c'est translate et non pas translation
+            debug.innerHTML += "T = "+mat4.str(T)+"<br/>";
+
+            // appliquer T à U
+            let TU = vec4.create();
+            vec4.transformMat4(TU, U, T);
+            debug.innerHTML += "T×U = "+vec4.str(TU)+" <em>un vecteur n'a pas de « position » donc ne peut pas être translaté</em><br/>";
+
+            // définir le point P
+            let P = vec4.fromValues(2,0,2,1);
+            debug.innerHTML += "P = "+vec4.str(P)+"<br/>";
+
+            // appliquer T à P
+            let TP = vec4.create();
+            vec4.transformMat4(TP, P, T);
+            debug.innerHTML += "T×P = "+vec4.str(TP)+"<br/>";
+
+            // redéfinir la matrice M à une homothétie x4
+            M = mat4.create();          // obligation de faire create car elle était mat2 avant
+            mat4.scale(M, M, vec3.fromValues(4, 4, 4));
+            debug.innerHTML += "M = "+mat4.str(M)+"<br/>";
+
+            // appliquer M à U
+            MU = vec4.create();
+            vec4.transformMat4(MU, U, M);
+            debug.innerHTML += "M×U = "+vec4.str(MU)+"<br/>";
+
+            // appliquer M à P
+            let MP = vec4.create();
+            vec4.transformMat4(MP, P, M);
+            debug.innerHTML += "M×P = "+vec4.str(MP)+"<br/>";
+
+
+            ///////////////////////////
+            debug.innerHTML += "<h4>Inversion de matrices 4x4</h4>";
+
+            debug.innerHTML += "<p>Fonctions utilisées :<ul>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat4.html#.identity'>mat4.identity(out)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat4.html#.invert'>mat4.invert(out, a)</a></li>";
+            debug.innerHTML += "<li><a href='http://glmatrix.net/docs/module-mat4.html#.transpose'>mat4.transpose(out, a)</a></li>";
+            debug.innerHTML += "</ul></p>";
+
+            // redéfinition de la matrice M à une rotation d'axe Y
+            mat4.identity(M);           // plus économique que create car elle est déjà mat4
+            mat4.rotateY(M, M, angle);
+            debug.innerHTML += "M = "+mat4.str(M)+"<br/>";
+
+            // inversion de la matrice
+            let Minv = mat4.create();
+            mat4.invert(Minv, M);        // !!! c'est invert et non pas inverse
+            debug.innerHTML += "M<sup>-1</sup> = "+mat4.str(Minv)+"<br/>";
+            debug.innerHTML += "M = "+mat4.str(M)+"<br/>";
+
+            // produit de M-1 par M
+            let MinvM = mat4.create();
+            mat4.multiply(MinvM, Minv, M);
+            debug.innerHTML += "M<sup>-1</sup>×M = "+mat4.str(MinvM)+" <em>remarquez l'imprecision !</em><br/>";
+
+            // produit de M par M-1
+            let MMinv = mat4.create();
+            mat4.multiply(MMinv, M, Minv);
+            debug.innerHTML += "M×M<sup>-1</sup> = "+mat4.str(MMinv)+"<br/>";
+
+            // application de M-1 à MU
+            let MinvMU = vec4.create();
+            vec4.transformMat4(MinvMU, MU, Minv);
+            debug.innerHTML += "M<sup>-1</sup>×(M×U) = "+vec4.str(MinvMU)+"<br/>";
+
+            // quand la matrice est orthogonale (rotation, symétrie) l'inversion peut être faite par simple transposition
+            let Mt = mat4.create();
+            mat4.transpose(Mt, M);
+            debug.innerHTML += "M<sup>t</sup> = "+mat4.str(Mt)+"<br/>";
+
+            // produit de Mt par M
+            let MtM = mat4.create();
+            mat4.multiply(MtM, Mt, M);
+            debug.innerHTML += "M<sup>t</sup>×M = "+mat4.str(MtM)+"<br/>";
+
+
+            /*
+            debug.innerHTML += "<p>Fonctions utilisées :<ul>";
+            debug.innerHTML += "<li></li>";
+            debug.innerHTML += "</ul></p>";
+            */
+
+        }
+    </script>
+
+</head>
+
+<body onload="main();">
+
+    <p>Les fonctions glMatrix utilisées sont décrites dans la <a href="../docs/gl-matrix/index.html">doc interne</a> ou la <a href="http://glmatrix.net/docs">doc externe (officielle)</a>.</p>
+
+    <p id="debug" style="background-color:#F8FFFC">
+        <!-- pour afficher des infos dans cette zone, faire :
+            document.getElementById("debug").innerHTML += "message...<br/>";
+        -->
+    </p>
+
+</body>
+
+</html>

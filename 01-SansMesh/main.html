@@ -1,0 +1,77 @@
+<html>
+
+<head>
+    <title>01 - SansMesh</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+
+    <!-- chargement des librairies : maths, divers et debug -->
+    <script type="text/javascript" src="libs/gl-matrix-min.js"></script>
+    <script type="text/javascript" src="libs/webgl-utils.js"></script>
+    <script type="text/javascript" src="libs/webgl-debug.js"></script>
+    <script type="text/javascript" src="libs/utils.js"></script>
+
+    <!-- définition d'un objet à dessiner -->
+    <script type="text/javascript" src="Grid.js"></script>
+    <script type="text/javascript" src="Triedre.js"></script>
+    <script type="text/javascript" src="Pyramide.js"></script>
+
+    <!-- classes du projet -->
+    <script type="text/javascript" src="Scene.js"></script>
+
+
+    <!-- initialisation du contexte OpenGL dans le canvas -->
+    <script type="text/javascript">
+
+        var scene = null;
+
+        function webGLStart()
+        {
+            // rechercher le canvas appelé "opengl-canvas"
+            let canvas = document.getElementById("opengl-canvas");
+
+            // le mettre en mode OpenGL avec anticrénelage
+            initGL(canvas, {antialias:true});
+
+            // créer la scène à dessiner
+            scene = new Scene();
+
+            // fournir la dimension du canvas à la scène (viewport et projection)
+            scene.onSurfaceChanged(gl.viewportWidth, gl.viewportHeight);
+
+            // demander de réafficher régulièrement
+            //refresh();
+            Utils.repeatRefresh();
+        }
+
+        function refresh()
+        {
+            // demander à la scène de se dessiner, sauf si elle n'a pas été créée
+            if (typeof(scene) == "object") scene.onDrawFrame();
+        }
+    </script>
+
+</head>
+
+<body onload="webGLStart();">
+
+    <canvas id="opengl-canvas" width="640" height="480"
+        style="border:1px solid black;"
+        oncontextmenu="return false">
+        Your browser does not support WebGL
+    </canvas>
+    <p id="debug" style="background-color:SeaShell">
+        <!-- pour afficher des infos dans cette zone, faire :
+            document.getElementById("debug").innerHTML = "message...";
+        -->
+    </p>
+    <h2>Source files</h2>
+    <ul>
+        <li><a href="Grid.js">Grid.js</a></li>
+        <li><a href="Triedre.js">Triedre.js</a></li>
+        <li><a href="Pyramide.js">Pyramide.js</a></li>
+        <li><a href="Scene.js">Scene.js</a></li>
+    </ul>
+
+</body>
+
+</html>

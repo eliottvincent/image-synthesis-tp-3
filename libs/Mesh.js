@@ -345,7 +345,29 @@ class Mesh
      */
     extrude(triangles, vector)
     {
-        /// TODO il faut tout faire
+        for (let t of triangles) {
+
+            // récupération des sommets du triangles
+            let A = t.m_Vertices[0];
+            let B = t.m_Vertices[1];
+            let C = t.m_Vertices[2];
+
+            // calcul des coordonnées du nouveau triangle
+            let A_prime = new Vertex(this, A.m_Coords[0] + vector[0], A.m_Coords[1] + vector[1], A.m_Coords[2] + vector[2]);
+            let B_prime = new Vertex(this, B.m_Coords[0] + vector[0], B.m_Coords[1] + vector[1], B.m_Coords[2] + vector[2]);
+            let C_prime = new Vertex(this, C.m_Coords[0] + vector[0], C.m_Coords[1] + vector[1], C.m_Coords[2] + vector[2]);
+
+            t.m_Vertices = [A_prime, B_prime, C_prime];
+
+            new Triangle(this, A, B, B_prime);
+            new Triangle(this, A, B_prime, A_prime);
+
+            new Triangle(this, B, C, C_prime);
+            new Triangle(this, B, C_prime, B_prime);
+
+            new Triangle(this, C, A, A_prime);
+            new Triangle(this, C, A_prime, C_prime);
+        }
     }
 
 

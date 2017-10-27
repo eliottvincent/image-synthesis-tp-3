@@ -146,14 +146,46 @@ class Mesh
      */
     buildVBOs()
     {
-        /// TODO construire plusieurs VBOs :
-        ///     - this.m_VertexBufferId contient les coordonnées 3D des sommets du maillage
-        ///     - this.m_ColorBufferId contient les couleurs des sommets
-        ///     - this.m_NormalBufferId contient les coordonnées 3D des normales des sommets
-        ///     - this.m_FacesIndexBufferId contient les indices permettant de dessiner les triangles
+        let vertices = [];
+        let colors = [];
+        let normals = [];
+        let num = 0;
+        for (let v of this.m_VertexList) {
+            v.m_Index = num; num++;
+
+            // coordonnees 3D
+            vertices.push(v.m_Coords[0]);
+            vertices.push(v.m_Coords[1]);
+            vertices.push(v.m_Coords[2]);
+
+            // couleurs
+            colors.push(v.m_Color[0]);
+            colors.push(v.m_Color[1]);
+            colors.push(v.m_Color[2]);
+
+            // normales
+            normals.push(v.m_Normal[0]);
+            normals.push(v.m_Normal[1]);
+            normals.push(v.m_Normal[2]);
+        }
+
+        this.m_VertexBufferId = Utils.makeFloatVBO(vertices, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+        this.m_ColorBufferId = Utils.makeFloatVBO(colors, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+        this.m_NormalBufferId = Utils.makeFloatVBO(normals, gl.ARRAY_BUFFER, gl.STATIC_DRAW);
+
+        // normales
+        let indices = [];
+        for (let t of this.m_TriangleList) {
+            indices.push(t.m_Vertices[0].m_Index);
+            indices.push(t.m_Vertices[1].m_Index);
+            indices.push(t.m_Vertices[2].m_Index);
+        }
+
+        // this.TRIANGLE_COUNT = indices.length / 3;
+        this.m_FacesIndexBufferId = Utils.makeShortVBO(indices, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
 
         // il est maintenant prêt à être dessiné
-        /// TODO this.m_Ready = true;
+        this.m_Ready = true;
     }
 
 
@@ -163,6 +195,19 @@ class Mesh
      */
     buildEdgesVBO()
     {
+        let indices = [];
+        for (let t of this.m_TriangleList) {
+            indices.push(t.m_Vertices[0].m_Index);
+            indices.push(t.m_Vertices[1].m_Index);
+
+            indices.push(t.m_Vertices[1].m_Index);
+            indices.push(t.m_Vertices[2].m_Index);
+
+            indices.push(t.m_Vertices[2].m_Index);
+            indices.push(t.m_Vertices[0].m_Index);
+        }
+
+        this.m_EdgesIndexBufferId = Utils.makeShortVBO(indices, gl.ELEMENT_ARRAY_BUFFER, gl.STATIC_DRAW);
     }
 
     /**
@@ -239,7 +284,57 @@ class Mesh
         // ne rien faire s'il n'est pas prêt
         if (!this.m_Ready || this.m_EdgesIndexBufferId == null) return;
 
-        /// TODO compléter pour que ça dessine les arêtes
+        // activer le shader
+        gl.useProgram(this.m_ShaderId);
+
+        // fournir la matrice P * VM au shader
+        mat4.mul(this.m_MatPVM, matP, matVM);
+        mat4.glUniformMatrix(this.m_MatPVMLoc, this.m_MatPVM);
+
+        // calcul de la matrice normale
+        mat3.fromMat4(this.m_MatN, matVM);
+        mat3.transpose(this.m_MatN, this.m_MatN);
+        mat3.invert(this.m_MatN, this.m_MatN);
+        mat3.glUniformMatrix(this.m_MatNLoc, this.m_MatN);
+
+        // activer et lier le buffer contenant les coordonnées
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.m_VertexBufferId);
+        gl.enableVertexAttribArray(this.m_VertexLoc);
+        gl.vertexAttribPointer(this.m_VertexLoc, Utils.VEC3, gl.FLOAT, gl.FALSE, 0, 0);
+
+        // activer et lier le buffer contenant les couleurs s'il est utilisé dans le shader
+        if (this.m_ColorLoc != null && this.m_ColorLoc >= 0) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.m_ColorBufferId);
+            gl.enableVertexAttribArray(this.m_ColorLoc);
+            gl.vertexAttribPointer(this.m_ColorLoc, Utils.VEC3, gl.FLOAT, gl.FALSE, 0, 0);
+        }
+
+        // activer et lier le buffer contenant les normales s'il est utilisé dans le shader
+        if (this.m_NormalLoc != null && this.m_NormalLoc >= 0) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.m_NormalBufferId);
+            gl.enableVertexAttribArray(this.m_NormalLoc);
+            gl.vertexAttribPointer(this.m_NormalLoc, Utils.VEC3, gl.FLOAT, gl.FALSE, 0, 0);
+        }
+
+        // activer et lier le buffer contenant les indices
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_EdgesIndexBufferId);
+
+        // dessiner les triangles
+        gl.drawElements(gl.LINES, this.m_TriangleList.length * 6, gl.UNSIGNED_SHORT, 0);
+
+        // désactiver les buffers
+        gl.disableVertexAttribArray(this.m_VertexLoc);
+        if (this.m_ColorLoc != null && this.m_ColorLoc >= 0) {
+            gl.disableVertexAttribArray(this.m_ColorLoc);
+        }
+        if (this.m_NormalLoc != null && this.m_NormalLoc >= 0) {
+            gl.disableVertexAttribArray(this.m_NormalLoc);
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+        // désactiver le shader
+        gl.useProgram(null);
     }
 
 
@@ -291,14 +386,14 @@ class Vertex
     constructor(mesh, x,y,z)
     {
         // attributs de sommet
-        /// TODO affecter :
-        ///     - this.m_Index avec -1
-        ///     - this.m_Coords avec un vec3 contenant x,y,z
-        ///     - this.m_Color et this.m_Normal avec un vec3 non initialisé
+        this.m_index = -1;
+        this.m_Coords = vec3.fromValues(x, y, z);
+        this.m_Color = vec3.create();
+        this.m_Normal = vec3.create();
 
         // lien entre sommet et mesh
-        /// TODO rajouter this dans la liste des sommets de mesh
-        /// TODO affecter this.m_Mesh avec mesh
+        mesh.m_VertexList.push(this);
+        this.m_Mesh = mesh;
     }
 
 
@@ -349,11 +444,11 @@ class Triangle
     constructor(mesh, v0, v1, v2)
     {
         // tableau des sommets
-        /// TODO placer les trois sommets fournis dans un tableau this.m_Vertices
+        this.m_Vertices = [v0, v1, v2];
 
         // lien entre triangle et mesh
-        /// TODO rajouter this dans la liste des triangles de mesh
-        /// TODO affecter this.m_Mesh avec mesh
+        mesh.m_TriangleList.push(this);
+        this.m_Mesh = mesh;
 
         // normale et surface
         this.m_Normal = vec3.create();

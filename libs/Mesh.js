@@ -375,17 +375,72 @@ class Mesh
      * Effectue une subdivision de tous les triangles
      * @param normalize true s'il faut normaliser les sommets intermédiaire
      */
-    subdivide(normalize=false)
-    {
+    subdivide(normalize=false) {
+
         // copier la liste des triangles pour ne pas traiter les nouveaux triangles
         let triangles = this.m_TriangleList.slice(0);
 
+        for (let v of this.m_VertexList)
+        {
+            v.m_MileuVers = new Map();
+        }
         // chaque triangle est coupé en 4
-        for (let t of triangles) {
-            /// TODO il faut subdiviser le triangle t
+        for (let triangle of triangles) {
+
+            // trois sommets du triangle
+            let A = triangle.m_Vertices[0];
+            let B = triangle.m_Vertices[1];
+            let C = triangle.m_Vertices[2];
+
+            // création des points du milieu
+            let mAB = A.m_MileuVers.get(B);
+            if (mAB === undefined) {
+                mAB = new Vertex(this,
+                    (A.m_Coords[0]+B.m_Coords[0])*0.5,
+                    (A.m_Coords[1]+B.m_Coords[1])*0.5,
+                    (A.m_Coords[2]+B.m_Coords[2])*0.5
+                );
+                A.m_MileuVers.set(B, mAB);
+                B.m_MileuVers.set(A, mAB);
+            }
+
+            let mCA = C.m_MileuVers.get(A);
+            if (mCA === undefined) {
+                mCA = new Vertex(this,
+                    (A.m_Coords[0]+C.m_Coords[0])*0.5,
+                    (A.m_Coords[1]+C.m_Coords[1])*0.5,
+                    (A.m_Coords[2]+C.m_Coords[2])*0.5
+                );
+                C.m_MileuVers.set(A, mCA);
+                A.m_MileuVers.set(C, mCA);
+            }
+
+            let mBC = B.m_MileuVers.get(C);
+            if (mBC === undefined) {
+                mBC = new Vertex(this,
+                    (B.m_Coords[0]+C.m_Coords[0])*0.5,
+                    (B.m_Coords[1]+C.m_Coords[1])*0.5,
+                    (B.m_Coords[2]+C.m_Coords[2])*0.5
+                );
+                B.m_MileuVers.set(C, mBC);
+                C.m_MileuVers.set(B, mBC);
+            }
+
+            //lissage
+            if(normalize) {
+                vec3.normalize(mAB.m_Coords, mAB.m_Coords);
+                vec3.normalize(mCA.m_Coords, mCA.m_Coords);
+                vec3.normalize(mBC.m_Coords, mBC.m_Coords);
+            }
+
+            // création des triangles
+            new Triangle(this, A, mAB, mCA);
+            new Triangle(this, mCA, mBC,C);
+            new Triangle(this, mAB, B, mBC);
+            // le triangle par le triangle du milieu
+            triangle.m_Vertices = [mAB, mBC, mCA];
         }
     }
-
 
     /** destructeur */
     destroy()

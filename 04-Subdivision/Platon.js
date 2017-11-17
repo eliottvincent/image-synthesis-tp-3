@@ -101,10 +101,10 @@ class Platon extends Mesh
         }
 
         // subdiviser tous les triangles (décommenter les 1 à 4 lignes quand ça marchera)
-        //this.subdivide(true);
-        //this.subdivide(true);
-        //this.subdivide(true);
-        //this.subdivide(true);
+        this.subdivide(true);
+        this.subdivide(true);
+        this.subdivide(true);
+        this.subdivide(true);
 
         // calculer les normales (elles ne sont pas bonnes si les points milieu sont distincts)
         this.computeNormals();

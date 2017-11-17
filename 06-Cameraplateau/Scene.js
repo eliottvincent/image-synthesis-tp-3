@@ -29,7 +29,7 @@ class Scene
         // gestion souris
         this.m_Azimut = -30.0;
         this.m_Elevation = 20.0;
-        this.m_Distance = 15.0;
+        this.m_Pivot = vec3.fromValues(0, 0, -15);
         this.m_Clicked = false;
 
         // matrices
@@ -37,7 +37,6 @@ class Scene
         this.m_MatV = mat4.create();
         this.m_MatVM = mat4.create();
     }
-
 
     onMouseDown(btn, x, y)
     {
@@ -54,7 +53,10 @@ class Scene
     onMouseMove(x, y)
     {
         if (! this.m_Clicked) return;
-        /// TODO mettre à jour azimut et hauteur en fonction du mouvement souris
+
+        this.m_Azimut += 0.3 * (x - this.m_MousePrecX);
+        this.m_Elevation += 0.3 * (y - this.m_MousePrecY);
+
         this.m_MousePrecX = x;
         this.m_MousePrecY = y;
     }
@@ -63,9 +65,18 @@ class Scene
     {
         switch (code) {
             case 'Z':
+                this.m_Pivot[2] += 1;
                 break;
             case 'S':
+                this.m_Pivot[2] -= 1;
                 break;
+            case 'Q':
+                this.m_Pivot[0] += 1;
+                break;
+            case 'D':
+                this.m_Pivot[0] -= 1;
+                break;
+
         }
     }
 
@@ -87,10 +98,11 @@ class Scene
 
         // positionner la caméra
         mat4.identity(this.m_MatV);
-        mat4.translate(this.m_MatV, this.m_MatV, vec3.fromValues(0, -0.5, -this.m_Distance));
+        mat4.translate(this.m_MatV, this.m_MatV, this.m_Pivot);
 
         // rotation demandée par la souris
-        /// TODO prendre en compte azimut et hauteur dans le bon ordre
+        mat4.rotateX(this.m_MatV, this.m_MatV, Utils.radians(this.m_Elevation));
+        mat4.rotateY(this.m_MatV, this.m_MatV, Utils.radians(this.m_Azimut));
 
         // dessiner la grille
         this.m_Grid.onDraw(this.m_MatP, this.m_MatV);

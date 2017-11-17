@@ -45,13 +45,13 @@
 
         function refresh()
         {
-            if (typeof(scene) == "object")
+            if (typeof(scene) === "object")
                 scene.onDrawFrame();
         }
 
         function onKeyDown(keycode)
         {
-            if (typeof(scene) == "object" && typeof(scene.onKeyDown) == "function")
+            if (typeof(scene) === "object" && typeof(scene.onKeyDown) === "function")
                 scene.onKeyDown(String.fromCharCode(keycode));
         }
 
@@ -61,19 +61,19 @@
 
         function onMouseDown(btn, x, y)
         {
-            if (typeof(scene) == "object" && typeof(scene.onMouseDown) == "function")
+            if (typeof(scene) === "object" && typeof(scene.onMouseDown) === "function")
                 scene.onMouseDown(btn, x, y);
         }
 
         function onMouseUp(btn, x, y)
         {
-            if (typeof(scene) == "object" && typeof(scene.onMouseUp) == "function")
+            if (typeof(scene) === "object" && typeof(scene.onMouseUp) === "function")
                 scene.onMouseUp(btn, x, y);
         }
 
         function onMouseMove(x, y)
         {
-            if (typeof(scene) == "object" && typeof(scene.onMouseMove) == "function")
+            if (typeof(scene) === "object" && typeof(scene.onMouseMove) === "function")
                 scene.onMouseMove(x, y);
         }
 
